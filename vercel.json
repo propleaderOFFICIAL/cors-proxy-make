@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/proxy-make.js": {
+      "maxDuration": 30
+    }
+  }
+}
