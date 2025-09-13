@@ -1,0 +1,5 @@
+{
+  "name": "cors-proxy-make",
+  "version": "1.0.0",
+  "description": "Proxy CORS per webhook Make.com"
+}
