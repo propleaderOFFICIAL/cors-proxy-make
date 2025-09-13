@@ -1,10 +1,10 @@
-// api/proxy-make.js - VERSIONE MIGLIORATA CON DEBUGGING
+// api/proxy-make.js - VERSIONE INTELLIGENTE CON GOOGLE SHEETS SOLO PER LEAD
 
 export default async function handler(req, res) {
   // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Target-Webhook');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Target-Webhook, X-Request-Type, X-Google-Sheets-Url');
   res.setHeader('Access-Control-Max-Age', '86400');
 
   // Handle preflight OPTIONS request
@@ -20,7 +20,7 @@ export default async function handler(req, res) {
   }
 
   // 🔍 LOG DETTAGLIATO DELLA RICHIESTA
-  console.log('🎯 === NUOVA RICHIESTA PROXY ===');
+  console.log('🎯 === NUOVA RICHIESTA PROXY INTELLIGENTE ===');
   console.log('📊 Request details:', {
     method: req.method,
     url: req.url,
@@ -30,10 +30,14 @@ export default async function handler(req, res) {
   });
 
   try {
-    // Estrai il target webhook dall'header
+    // Estrai headers importanti
     const targetWebhook = req.headers['x-target-webhook'];
+    const requestType = req.headers['x-request-type']; // 'lead' o 'tracking'
+    const googleSheetsUrl = req.headers['x-google-sheets-url'];
     
     console.log('🎯 Target webhook:', targetWebhook);
+    console.log('🏷️ Request type:', requestType);
+    console.log('📊 Google Sheets URL:', googleSheetsUrl);
     
     if (!targetWebhook) {
       console.log('❌ Header X-Target-Webhook mancante');
@@ -84,7 +88,7 @@ export default async function handler(req, res) {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json, text/plain, */*',
-          'User-Agent': 'PropleaderProxy/1.0'
+          'User-Agent': 'PropleaderProxy/1.1'
         },
         body: JSON.stringify(req.body),
         signal: controller.signal
@@ -176,12 +180,94 @@ export default async function handler(req, res) {
       };
     }
 
-    // 🎯 INVIA RISPOSTA AL CLIENT
-    console.log('📤 Risposta finale al client:');
-    console.log(JSON.stringify(responseData, null, 2));
-    console.log('🏁 === FINE RICHIESTA PROXY ===\n');
+    // 🧠 LOGICA INTELLIGENTE: INVIA A GOOGLE SHEETS SOLO SE È UN LEAD
+    let sheetsResult = null;
     
-    return res.status(makeResponse.status).json(responseData);
+    if (requestType === 'lead' && googleSheetsUrl) {
+      console.log('📊 === RILEVATO LEAD - INVIO A GOOGLE SHEETS ===');
+      
+      try {
+        // Prepara dati semplificati per Google Sheets (solo i campi essenziali)
+        const sheetsData = {
+          name: req.body.name || '',
+          email: req.body.email || '',
+          phone: req.body.phone || '',
+          prefix: req.body.prefix || '',
+          funnel: req.body.funnel || ''
+        };
+        
+        console.log('📦 Dati per Google Sheets:', JSON.stringify(sheetsData, null, 2));
+        
+        // Invia a Google Sheets
+        const sheetsResponse = await fetch(googleSheetsUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(sheetsData)
+        });
+        
+        if (sheetsResponse.ok) {
+          const sheetsResponseData = await sheetsResponse.text();
+          console.log('✅ Salvato su Google Sheets:', sheetsResponseData);
+          
+          try {
+            sheetsResult = {
+              success: true,
+              response: JSON.parse(sheetsResponseData)
+            };
+          } catch {
+            sheetsResult = {
+              success: true,
+              response: sheetsResponseData
+            };
+          }
+        } else {
+          console.error('❌ Errore Google Sheets:', sheetsResponse.status, sheetsResponse.statusText);
+          sheetsResult = {
+            success: false,
+            error: `Google Sheets error: ${sheetsResponse.status}`,
+            status: sheetsResponse.status
+          };
+        }
+        
+      } catch (sheetsError) {
+        console.error('💥 ERRORE invio a Google Sheets:', sheetsError);
+        sheetsResult = {
+          success: false,
+          error: sheetsError.message
+        };
+      }
+    } else if (requestType === 'lead') {
+      console.log('⚠️ LEAD rilevato ma Google Sheets URL mancante');
+      sheetsResult = {
+        success: false,
+        error: 'Google Sheets URL mancante per il lead'
+      };
+    } else {
+      console.log('ℹ️ Non è un lead, salto Google Sheets');
+    }
+
+    // 🎯 PREPARA RISPOSTA FINALE
+    const finalResponse = {
+      ...responseData,
+      proxy_info: {
+        duration_ms: duration,
+        request_type: requestType,
+        timestamp: new Date().toISOString()
+      }
+    };
+
+    // Aggiungi info Google Sheets se presente
+    if (sheetsResult) {
+      finalResponse.google_sheets = sheetsResult;
+    }
+
+    console.log('📤 Risposta finale al client:');
+    console.log(JSON.stringify(finalResponse, null, 2));
+    console.log('🏁 === FINE RICHIESTA PROXY INTELLIGENTE ===\n');
+    
+    return res.status(makeResponse.status).json(finalResponse);
 
   } catch (error) {
     // 💥 GESTIONE ERRORI GENERALE
