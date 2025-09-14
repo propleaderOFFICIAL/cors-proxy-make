@@ -1,6 +1,9 @@
-// api/proxy-make.js - VERSIONE INTELLIGENTE CON GOOGLE SHEETS SOLO PER LEAD
+// api/proxy-make.js - VERSIONE INTELLIGENTE CON GOOGLE SHEETS SOLO PER LEAD + API KEY
 
 export default async function handler(req, res) {
+  // 🔐 API KEY PER MAKE.COM
+  const MAKE_API_KEY = 'mk_auth_2024_7X9kL3mQ8nR4pT6vY2sZ1wE5uI0oB9cN';
+
   // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -38,6 +41,7 @@ export default async function handler(req, res) {
     console.log('🎯 Target webhook:', targetWebhook);
     console.log('🏷️ Request type:', requestType);
     console.log('📊 Google Sheets URL:', googleSheetsUrl);
+    console.log('🔐 Using API Key:', MAKE_API_KEY.substring(0, 15) + '...');
     
     if (!targetWebhook) {
       console.log('❌ Header X-Target-Webhook mancante');
@@ -48,9 +52,8 @@ export default async function handler(req, res) {
 
     // Whitelist dei webhook permessi
     const allowedWebhooks = [
-      'https://hook.eu2.make.com/rs8d7ntch8kqi7zpcjwy8pqudz8yr8s0',
-      'https://hook.eu2.make.com/6c532l9lbrpji3mjm6decgduwt8hbvqw',
-      'https://hooks.zapier.com/hooks/catch/24572349/udj8db0/'
+      'https://hook.eu2.make.com/7kee3pb04heqg6e429fvt4ho74jngyf1',
+      'https://hook.eu2.make.com/6c532l9lbrpji3mjm6decgduwt8hbvqw'
     ];
 
     if (!allowedWebhooks.includes(targetWebhook)) {
@@ -69,7 +72,7 @@ export default async function handler(req, res) {
     console.log('📦 Payload da inviare:');
     console.log(JSON.stringify(req.body, null, 2));
 
-    // 🚀 RICHIESTA A MAKE.COM CON TIMEOUT E LOGGING
+    // 🚀 RICHIESTA A MAKE.COM CON TIMEOUT E LOGGING + API KEY
     console.log(`📡 Invio richiesta a Make.com: ${targetWebhook}`);
     
     const startTime = Date.now();
@@ -88,7 +91,8 @@ export default async function handler(req, res) {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json, text/plain, */*',
-          'User-Agent': 'PropleaderProxy/1.1'
+          'User-Agent': 'PropleaderProxy/1.1',
+          'x-make-apikey': MAKE_API_KEY  // 🔐 API KEY PER MAKE.COM
         },
         body: JSON.stringify(req.body),
         signal: controller.signal
@@ -254,7 +258,8 @@ export default async function handler(req, res) {
       proxy_info: {
         duration_ms: duration,
         request_type: requestType,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        authenticated: true  // 🔐 Indica che la richiesta è autenticata
       }
     };
 
