@@ -52,9 +52,8 @@ export default async function handler(req, res) {
 
     // Whitelist dei webhook permessi
     const allowedWebhooks = [
-      'https://hook.eu2.make.com/rs8d7ntch8kqi7zpcjwy8pqudz8yr8s0',
-      'https://hook.eu2.make.com/6c532l9lbrpji3mjm6decgduwt8hbvqw',
-      'https://hooks.zapier.com/hooks/catch/24572349/udj8db0/'
+      'https://hook.eu2.make.com/7kee3pb04heqg6e429fvt4ho74jngyf1',
+      'https://hook.eu2.make.com/6c532l9lbrpji3mjm6decgduwt8hbvqw'
     ];
 
     if (!allowedWebhooks.includes(targetWebhook)) {
