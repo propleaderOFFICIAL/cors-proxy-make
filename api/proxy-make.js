@@ -2,7 +2,7 @@
 
 export default async function handler(req, res) {
   // 🔐 API KEY PER MAKE.COM
-  const MAKE_API_KEY = 'mk_auth_2024_7X9kL3mQ8nR4pT6vY2sZ1wE5uI0oB9cN1';
+  const MAKE_API_KEY = 'mk_auth_2024_7X9kL3mQ8nR4pT6vY2sZ1wE5uI0oB9cN';
 
   // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
