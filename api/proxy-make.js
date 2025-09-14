@@ -52,8 +52,9 @@ export default async function handler(req, res) {
 
     // Whitelist dei webhook permessi
     const allowedWebhooks = [
-      'https://hook.eu2.make.com/7kee3pb04heqg6e429fvt4ho74jngyf1',
-      'https://hook.eu2.make.com/6c532l9lbrpji3mjm6decgduwt8hbvqw'
+      'https://hook.eu2.make.com/rs8d7ntch8kqi7zpcjwy8pqudz8yr8s0',
+      'https://hook.eu2.make.com/6c532l9lbrpji3mjm6decgduwt8hbvqw',
+      'https://hooks.zapier.com/hooks/catch/24572349/udj8db0/'
     ];
 
     if (!allowedWebhooks.includes(targetWebhook)) {
@@ -140,25 +141,25 @@ export default async function handler(req, res) {
       console.log(`  ${key}: ${value}`);
     }
 
-    // 🔍 LEGGI E PROCESSA LA RISPOSTA
+    // 🔍 LEGGI E INOLTRA DIRETTAMENTE LA RISPOSTA DI MAKE.COM
     let responseData;
     let responseText;
     
     try {
-      // Prima leggi come testo
+      // Leggi la risposta come testo
       responseText = await makeResponse.text();
       console.log('📄 Raw response da Make.com:');
       console.log(responseText);
       
-      // Poi prova a parsificare come JSON
+      // Prova a parsificare come JSON
       if (responseText.trim()) {
         try {
+          // 📦 INOLTRA DIRETTAMENTE QUELLO CHE RESTITUISCE MAKE.COM
           responseData = JSON.parse(responseText);
-          console.log('✅ Response parsificata come JSON:', responseData);
+          console.log('✅ Response parsificata come JSON - inoltro direttamente:', responseData);
         } catch (parseError) {
-          console.log('⚠️ Response non è JSON valido, uso formato wrapper');
+          console.log('⚠️ Response non è JSON valido, creo wrapper');
           responseData = {
-            status: makeResponse.ok ? 'whatsapp-si' : 'error',
             raw: responseText,
             httpStatus: makeResponse.status,
             parseError: parseError.message
@@ -167,7 +168,6 @@ export default async function handler(req, res) {
       } else {
         console.log('⚠️ Response vuota da Make.com');
         responseData = {
-          status: makeResponse.ok ? 'whatsapp-si' : 'error',
           raw: '',
           httpStatus: makeResponse.status,
           message: 'Empty response from Make.com'
@@ -177,7 +177,6 @@ export default async function handler(req, res) {
     } catch (responseError) {
       console.error('❌ Errore lettura response:', responseError);
       responseData = {
-        status: 'error',
         error: 'Failed to read response from Make.com',
         httpStatus: makeResponse.status,
         details: responseError.message
