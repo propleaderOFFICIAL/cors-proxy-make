@@ -52,7 +52,10 @@ export default async function handler(req, res) {
 
     // Whitelist dei webhook permessi
     const allowedWebhooks = [
-      'https://hook.eu2.make.com/7kee3pb04heqg6e429fvt4ho74jngyf1',
+      // LEAD su n8n
+      'https://digitalsolutions.app.n8n.cloud/webhook/875aa7f1-389c-4182-b241-5526dc271962',
+    
+      // TRACKING ancora su Make
       'https://hook.eu2.make.com/6c532l9lbrpji3mjm6decgduwt8hbvqw'
     ];
 
