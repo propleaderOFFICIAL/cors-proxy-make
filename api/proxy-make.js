@@ -56,6 +56,9 @@ export default async function handler(req, res) {
       'https://digitalsolutions.app.n8n.cloud/webhook/875aa7f1-389c-4182-b241-5526dc271962',
       'https://digitalsolutions.app.n8n.cloud/webhook-test/875aa7f1-389c-4182-b241-5526dc271962',
     
+      // PRENOTAZIONE CHIAMATA su n8n
+      'https://digitalsolutions.app.n8n.cloud/webhook-test/c784fdd0-3656-490a-87dc-b7f04cef8f87',
+    
       // TRACKING ancora su Make
       'https://hook.eu2.make.com/6c532l9lbrpji3mjm6decgduwt8hbvqw'
     ];
